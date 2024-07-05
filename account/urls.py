@@ -3,4 +3,6 @@ from . import views
 
 urlpatterns = [
     path('accounts/register/', views.RegisterAccountView.as_view()),
+    path('accounts/activate/<str:uuid64>/<str:token>/',
+         views.RegisterAccountView.as_view()),
 ]
