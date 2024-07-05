@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
-from .serializers import AccountSerializer
+from .serializers import *
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.tokens import default_token_generator
@@ -8,6 +8,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 
 class RegisterAccountView(APIView):
@@ -43,3 +45,23 @@ class RegisterAccountView(APIView):
             return Response("Account activated. You can close the tab and return to website")
         else:
             return redirect("Something went wrong! Please try again.")
+
+
+class LoginAccountView(APIView):
+    def post(self, request):
+        data = request.data
+
+        serializer = LoginSerializer(data=data, many=False)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+
+            account = authenticate(username=username, password=password)
+
+            if account:
+                token, _ = Token.objects.get_or_create(user=account)
+                account = AccountSerializer(account)
+                return Response({'account': account.data, 'token': str(token)})
+
+            return Response({"errors": "No user found with given credentials"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors)
