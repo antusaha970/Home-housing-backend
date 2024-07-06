@@ -13,6 +13,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rent.models import Advertisement
+from rent.serializers import AdvertisementSerializer
 
 
 class RegisterAccountView(APIView):
@@ -115,3 +118,16 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_all_favorites_add(request):
+
+    user = request.user
+    advertisements = Advertisement.objects.filter(
+        userfavoriteadvertisement__user=user)
+    serializer = AdvertisementSerializer(advertisements, many=True)
+
+    return Response(serializer.data)

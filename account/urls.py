@@ -8,4 +8,5 @@ urlpatterns = [
     path('accounts/login/', views.LoginAccountView.as_view()),
     path('accounts/activate/<str:uuid64>/<str:token>/',
          views.RegisterAccountView.as_view()),
+    path('accounts/favorite_ads/', views.get_all_favorites_add),
 ]
