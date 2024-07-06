@@ -1,7 +1,12 @@
 from django.contrib import admin
 from . import models
 
-admin.site.register(models.Advertisement)
+
+class AdvertiseAdmin(admin.ModelAdmin):
+    list_display = ["title", "is_admin_approved"]
+
+
+admin.site.register(models.Advertisement, AdvertiseAdmin)
 admin.site.register(models.Review)
 admin.site.register(models.AdvertisementImages)
 admin.site.register(models.AdvertisementReview)

@@ -23,3 +23,17 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
         fields = "__all__"
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = "__all__"
+
+
+class AdvertisementReviewSerializer(serializers.ModelSerializer):
+    review = ReviewSerializer(read_only=True)
+
+    class Meta:
+        model = AdvertisementReview
+        fields = ['id', 'review']

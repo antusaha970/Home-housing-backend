@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .filters import AdvertisementFilter
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Avg
 
 
 class AdvertisementPagination(PageNumberPagination):
@@ -50,5 +51,32 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
             return Response({'details': "Image uploaded successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['GET'])
+    def all_reviews(self, request, pk=None):
+        review = AdvertisementReview.objects.filter(advertisement__id=pk)
+        serializer = AdvertisementReviewSerializer(review, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def post_reviews(self, request, pk=None):
+        data = request.data
+        advertisement = get_object_or_404(Advertisement, pk=pk)
+        serializer = ReviewSerializer(data=data, many=False)
+        if serializer.is_valid():
+            review = serializer.save()
+
+            adReview = AdvertisementReview(
+                review=review, advertisement=advertisement)
+            adReview.save()
+
+            rating = advertisement.advertisement_review.aggregate(
+                avg_ratings=Avg('review__rating'))
+            advertisement.rating = rating['avg_ratings']
+            advertisement.save(update_fields=['rating'])
+
+            return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
