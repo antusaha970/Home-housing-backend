@@ -59,6 +59,11 @@ class LoginAccountView(APIView):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
 
+            # if user is not active don't let him to login
+            user = User.objects.get(username=username)
+            if not user.is_active:
+                return Response({'errors': "account is not active"}, status=status.HTTP_403_FORBIDDEN)
+
             account = authenticate(username=username, password=password)
 
             if account:
@@ -76,12 +81,22 @@ class ProfileView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = request.user
+
+        # checking if user is active
+        if not user.is_active:
+            return Response({'errors': "account is not active"}, status=status.HTTP_403_FORBIDDEN)
+
         profile = get_object_or_404(Profile, user=user)
         serializer = ProfileSerializer(profile, many=False)
         return Response(serializer.data)
 
     def post(self, request):
         user = request.user
+
+        # checking if user is active
+        if not user.is_active:
+            return Response({'errors': "account is not active"}, status=status.HTTP_403_FORBIDDEN)
+
         profile_data = request.data
         profile_data['user'] = user.id
 
