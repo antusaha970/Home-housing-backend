@@ -35,7 +35,8 @@ INSTALLED_APPS = [
 
     # custom apps
     'account',
-    'rent'
+    'rent',
+    'booking',
 ]
 
 MIDDLEWARE = [
