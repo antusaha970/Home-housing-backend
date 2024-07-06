@@ -8,6 +8,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from .filters import AdvertisementFilter
+from rest_framework.pagination import PageNumberPagination
+
+
+class AdvertisementPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class AdvertisementViewSet(viewsets.ModelViewSet):
@@ -15,6 +22,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     serializer_class = AdvertisementSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     authentication_classes = [TokenAuthentication]
+    pagination_class = AdvertisementPagination
 
     def get_queryset(self):
 
