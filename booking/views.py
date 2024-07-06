@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
+from rent.models import Advertisement
 
 
 class BookPropertyView(APIView):
@@ -19,8 +20,15 @@ class BookPropertyView(APIView):
         user = request.user
         serializer = BookPropertySerializer(data=data, many=False)
         if serializer.is_valid():
+
+            ad_id = serializer.validated_data['property_ad']
+            ad = get_object_or_404(Advertisement, pk=ad_id.id)
+            if ad.is_booked:
+                return Response({'errors': "This property is already booked"}, status=status.HTTP_403_FORBIDDEN)
+
             serializer.save(booked_by=user)
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
@@ -47,6 +55,10 @@ class PropertyOwnerView(APIView):
 
         booking.is_accepted = True
         booking.save(update_fields=["is_accepted"])
+
+        ad = booking.property_ad
+        ad.is_booked = True
+        ad.save(update_fields=["is_booked"])
 
         message = f"You booking on the home housing has been approved. Please check our website for more information."
         send_mail("Booking conformation", message,

@@ -28,7 +28,7 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
 
         filterset = AdvertisementFilter(
-            self.request.GET, queryset=Advertisement.objects.all().order_by('id'))
+            self.request.GET, queryset=Advertisement.objects.filter(is_admin_approved=True).order_by('id'))
         return filterset.qs
 
     def perform_create(self, serializer):
