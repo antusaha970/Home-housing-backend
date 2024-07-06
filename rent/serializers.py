@@ -2,6 +2,12 @@ from rest_framework import serializers
 from .models import *
 
 
+class AdvertiseImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdvertisementImages
+        fields = "__all__"
+
+
 class AdvertisementImageToDisplay(serializers.Serializer):
     image = serializers.ImageField()
 
