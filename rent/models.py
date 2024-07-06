@@ -45,3 +45,9 @@ class AdvertisementReview(models.Model):
     advertisement = models.ForeignKey(
         Advertisement, on_delete=models.CASCADE, related_name="advertisement_review")
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
+
+
+class UserFavoriteAdvertisement(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="user_favorite_advertisement")
+    advertisement = models.ForeignKey(Advertisement, on_delete=models.CASCADE)

@@ -80,3 +80,13 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['POST'])
+    def add_to_favorite(self, request, pk=None):
+        user = request.user
+        advertisement = get_object_or_404(Advertisement, pk=pk)
+
+        favorites = UserFavoriteAdvertisement(
+            user=user, advertisement=advertisement)
+        favorites.save()
+        return Response({"details": "Added to Favorite"}, status=status.HTTP_201_CREATED)
