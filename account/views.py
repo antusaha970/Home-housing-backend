@@ -10,6 +10,9 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+from django.shortcuts import get_object_or_404
 
 
 class RegisterAccountView(APIView):
@@ -65,3 +68,35 @@ class LoginAccountView(APIView):
 
             return Response({"errors": "No user found with given credentials"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors)
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        profile = get_object_or_404(Profile, user=user)
+        serializer = ProfileSerializer(profile, many=False)
+        return Response(serializer.data)
+
+    def post(self, request):
+        user = request.user
+        profile_data = request.data
+        profile_data['user'] = user.id
+
+        serializer = ProfileSerializer(data=profile_data, many=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        profile = get_object_or_404(Profile, pk=pk)
+        data = request.data
+        serializer = ProfileSerializer(
+            instance=profile, data=data, many=False, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

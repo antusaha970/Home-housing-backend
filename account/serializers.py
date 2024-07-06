@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Profile
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -61,3 +62,23 @@ class LoginSerializer(serializers.Serializer):
             'username': {'required': True},
             'password': {'required': True}
         }
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Profile
+        fields = "__all__"
+        extra_kwargs = {
+            'phone_number': {'required': True},
+            'gender': {'required': True},
+            'district': {'required': True},
+            'user': {'required': False},
+        }
+
+    def validate(self, attrs):
+        user = attrs.get('user')
+        if Profile.objects.filter(user=user).exists():
+            raise serializers.ValidationError(
+                "A profile with this user already exists")
+        return super().validate(attrs)
