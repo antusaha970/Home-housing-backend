@@ -63,7 +63,7 @@ class LoginAccountView(APIView):
             password = serializer.validated_data['password']
 
             # if user is not active don't let him to login
-            user = User.objects.get(username=username)
+            user = get_object_or_404(User, username=username)
             if not user.is_active:
                 return Response({'errors': "account is not active"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -112,6 +112,7 @@ class ProfileView(APIView):
     def patch(self, request, pk):
         profile = get_object_or_404(Profile, pk=pk)
         data = request.data
+
         serializer = ProfileSerializer(
             instance=profile, data=data, many=False, partial=True)
         if serializer.is_valid():

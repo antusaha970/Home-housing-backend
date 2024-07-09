@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import BookProperty
-from .serializers import BookPropertySerializer
+from .serializers import BookPropertySerializer, BookPropertyDetailsSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
@@ -19,6 +19,7 @@ class BookPropertyView(APIView):
         data = request.data
         user = request.user
         serializer = BookPropertySerializer(data=data, many=False)
+        print(data)
         if serializer.is_valid():
 
             ad_id = serializer.validated_data['property_ad']
@@ -34,7 +35,7 @@ class BookPropertyView(APIView):
     def get(self, request):
         user = request.user
         bookings = BookProperty.objects.filter(booked_by=user)
-        serializer = BookPropertySerializer(bookings, many=True)
+        serializer = BookPropertyDetailsSerializer(bookings, many=True)
         return Response(serializer.data)
 
 
