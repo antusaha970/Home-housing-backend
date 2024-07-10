@@ -1,9 +1,9 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from .serializers import *
 from .models import *
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -90,3 +90,22 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
             user=user, advertisement=advertisement)
         favorites.save()
         return Response({"details": "Added to Favorite"}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+@authentication_classes([TokenAuthentication])
+def all_advertisement_only_for_admin(request):
+    advertisements = Advertisement.objects.all()
+    serializer = AdvertisementSerializer(advertisements, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+@authentication_classes([TokenAuthentication])
+def approved_advertisement_request(request, pk=None):
+    advertisements = get_object_or_404(Advertisement, pk=pk)
+    advertisements.is_admin_approved = True
+    advertisements.save(update_fields=['is_admin_approved'])
+    return Response({"details": "Approved rent advertisement request"})
