@@ -12,6 +12,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ['https://home-housing-backend.onrender.com']
 
 
 # Application definition
