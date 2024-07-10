@@ -26,7 +26,7 @@ class Advertisement(models.Model):
     price = models.DecimalField(max_digits=7, decimal_places=2)
     bedrooms = models.IntegerField(default=0)
     bathrooms = models.IntegerField(default=0)
-    about = models.CharField(max_length=300)
+    about = models.TextField()
     summary = models.TextField()
     title = models.CharField(max_length=255)
     rating = models.DecimalField(default=0, max_digits=4, decimal_places=2)
