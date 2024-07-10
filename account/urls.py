@@ -9,4 +9,5 @@ urlpatterns = [
     path('accounts/activate/<str:uuid64>/<str:token>/',
          views.RegisterAccountView.as_view()),
     path('accounts/favorite_ads/', views.get_all_favorites_add),
+    path('accounts/published_ads/', views.get_published_advertisements),
 ]

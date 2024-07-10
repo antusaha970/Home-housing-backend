@@ -132,3 +132,13 @@ def get_all_favorites_add(request):
     serializer = AdvertisementSerializer(advertisements, many=True)
 
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@authentication_classes([TokenAuthentication])
+def get_published_advertisements(request):
+    user = request.user
+    advertisements = Advertisement.objects.filter(owner=user)
+    serializer = AdvertisementSerializer(advertisements, many=True)
+    return Response(serializer.data)
