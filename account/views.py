@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -54,8 +54,16 @@ class RegisterAccountView(APIView):
 
 
 class LoginAccountView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
     def post(self, request):
-        """This method authenticate a user account and send a token in response"""
+        """This method authenticate a user account and send a token and user information in response"""
         data = request.data
 
         serializer = LoginSerializer(data=data, many=False)
@@ -77,6 +85,12 @@ class LoginAccountView(APIView):
 
             return Response({"errors": "No user found with given credentials"}, status=status.HTTP_404_NOT_FOUND)
         return Response(serializer.errors)
+
+    def get(self, request):
+        user = request.user
+        token, _ = Token.objects.get_or_create(user=user)
+        account = AccountSerializer(user)
+        return Response({'account': account.data, 'token': str(token)})
 
 
 class ProfileView(APIView):
