@@ -55,6 +55,7 @@ class RegisterAccountView(APIView):
 
 class LoginAccountView(APIView):
     def post(self, request):
+        """This method authenticate a user account and send a token in response"""
         data = request.data
 
         serializer = LoginSerializer(data=data, many=False)
@@ -125,6 +126,7 @@ class ProfileView(APIView):
 @permission_classes([IsAuthenticated])
 @authentication_classes([TokenAuthentication])
 def get_all_favorites_add(request):
+    "This method returns all favorites items of the logged in user"
 
     user = request.user
     advertisements = Advertisement.objects.filter(

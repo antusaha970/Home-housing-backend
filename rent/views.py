@@ -83,19 +83,37 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'])
     def add_to_favorite(self, request, pk=None):
+        """This method add a specific ad to favorite list"""
         user = request.user
         advertisement = get_object_or_404(Advertisement, pk=pk)
+        is_already_added_to_favorite = UserFavoriteAdvertisement.objects.filter(
+            advertisement=advertisement).exists()
+
+        if is_already_added_to_favorite:
+            return Response({"details": "Already added to Favorite"}, status=status.HTTP_201_CREATED)
 
         favorites = UserFavoriteAdvertisement(
             user=user, advertisement=advertisement)
         favorites.save()
         return Response({"details": "Added to Favorite"}, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['DELETE'])
+    def remove_from_favorite(self, request, pk=None):
+        """This method removes a advertisement from favorites list"""
+        user = request.user
+
+        ad_to_remove = get_object_or_404(
+            UserFavoriteAdvertisement, advertisement__id=pk)
+        ad_to_remove.delete()
+
+        return Response({"details": "Removed from Favorite"}, status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 @authentication_classes([TokenAuthentication])
 def all_advertisement_only_for_admin(request):
+    """"This function shows all advertisement requests only for admin"""
     advertisements = Advertisement.objects.all()
     serializer = AdvertisementSerializer(advertisements, many=True)
     return Response(serializer.data)
@@ -105,6 +123,7 @@ def all_advertisement_only_for_admin(request):
 @permission_classes([IsAdminUser])
 @authentication_classes([TokenAuthentication])
 def approved_advertisement_request(request, pk=None):
+    """This function approve  an advertisement request via pk. Only admin can approve a request"""
     advertisements = get_object_or_404(Advertisement, pk=pk)
     advertisements.is_admin_approved = True
     advertisements.save(update_fields=['is_admin_approved'])
