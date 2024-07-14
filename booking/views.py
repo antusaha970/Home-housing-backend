@@ -9,6 +9,12 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rent.models import Advertisement
+import stripe
+import environ
+env = environ.Env()
+environ.Env.read_env()
+
+stripe.api_key = env("STRIPE_SECRET_KEY")
 
 
 class BookPropertyView(APIView):
@@ -16,6 +22,7 @@ class BookPropertyView(APIView):
     authentication_classes = [TokenAuthentication]
 
     def post(self, request):
+        """This method is responsible for creating booking"""
         data = request.data
         user = request.user
         serializer = BookPropertySerializer(data=data, many=False)
@@ -37,6 +44,50 @@ class BookPropertyView(APIView):
         bookings = BookProperty.objects.filter(booked_by=user)
         serializer = BookPropertyDetailsSerializer(bookings, many=True)
         return Response(serializer.data)
+
+
+def get_current_host(request):
+    protocol = request.is_secure() and "https" or "http"
+    host = request.get_host()
+    return f"{protocol}://{host}/"
+
+
+class BookPropertyWithCard(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request):
+        """This method creates a stripe session with the given advertisement  and gives a url to pay"""
+        YOUR_DOMAIN = get_current_host(self.request)
+        user = request.user
+        data = request.data
+        print(data)
+
+        ad_id = data['property_ad']
+        item = get_object_or_404(Advertisement, id=ad_id)
+
+        checkout_order_items = [{
+            'price_data': {
+                'currency': 'bdt',
+                'product_data': {
+                    'name': item.title,
+                    'metadata': {'ad_id': item.id}
+                },
+                'unit_amount': int(item.price * 100)
+            },
+            'quantity': 1,
+        }]
+
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=checkout_order_items,
+            customer_email=user.email,
+            mode='payment',
+            success_url=f"{YOUR_DOMAIN}",
+            cancel_url=f"{YOUR_DOMAIN}/cancel",
+        )
+
+        return Response({'session_url': session.url})
 
 
 class PropertyOwnerView(APIView):

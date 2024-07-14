@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
+PAYMENT_CHOICES = (("cash", "cash"), ("card", "card"))
+
 
 class BookProperty(models.Model):
     property_ad = models.ForeignKey(
@@ -13,3 +15,6 @@ class BookProperty(models.Model):
     booked_on = models.DateTimeField(auto_now_add=True)
     message = models.TextField()
     is_accepted = models.BooleanField(default=False)
+    payment_method = models.CharField(
+        max_length=10, choices=PAYMENT_CHOICES, default="cash")
+    is_paid = models.BooleanField(default=False)
