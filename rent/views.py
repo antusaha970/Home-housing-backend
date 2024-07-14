@@ -10,6 +10,7 @@ from rest_framework import status
 from .filters import AdvertisementFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Avg
+from booking.models import BookProperty
 
 
 class AdvertisementPagination(PageNumberPagination):
@@ -62,22 +63,34 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def post_reviews(self, request, pk=None):
+        """This method post review for a specific advertisement if logged in user have booked this property"""
         data = request.data
+        user = request.user
         advertisement = get_object_or_404(Advertisement, pk=pk)
         serializer = ReviewSerializer(data=data, many=False)
         if serializer.is_valid():
-            review = serializer.save()
 
-            adReview = AdvertisementReview(
-                review=review, advertisement=advertisement)
-            adReview.save()
+            is_user_booked_this_property = BookProperty.objects.filter(
+                property_ad=advertisement, booked_by=user, is_accepted=True).exists()
 
-            rating = advertisement.advertisement_review.aggregate(
-                avg_ratings=Avg('review__rating'))
-            advertisement.rating = rating['avg_ratings']
-            advertisement.save(update_fields=['rating'])
+            if is_user_booked_this_property:
 
-            return Response(serializer.data)
+                review = serializer.save(
+                    email=user.email, name=f"{user.first_name} {user.last_name}")
+
+                adReview = AdvertisementReview(
+                    review=review, advertisement=advertisement)
+                adReview.save()
+
+                rating = advertisement.advertisement_review.aggregate(
+                    avg_ratings=Avg('review__rating'))
+                advertisement.rating = rating['avg_ratings']
+                advertisement.save(update_fields=['rating'])
+
+                return Response(serializer.data)
+
+            else:
+                return Response({'errors': "This user didn't booked this property"}, status=status.HTTP_403_FORBIDDEN)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

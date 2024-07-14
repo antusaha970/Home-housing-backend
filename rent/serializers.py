@@ -37,6 +37,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = "__all__"
+        extra_kwargs = {
+            'name': {'required': False},
+            'email': {'required': False},
+            'body': {'required': True},
+            'rating': {'required': True},
+        }
 
 
 class AdvertisementReviewSerializer(serializers.ModelSerializer):
