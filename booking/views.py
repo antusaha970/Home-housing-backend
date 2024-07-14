@@ -9,8 +9,10 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rent.models import Advertisement
+from rest_framework.decorators import api_view
 import stripe
 import environ
+from django.contrib.auth.models import User
 env = environ.Env()
 environ.Env.read_env()
 
@@ -58,10 +60,10 @@ class BookPropertyWithCard(APIView):
 
     def post(self, request):
         """This method creates a stripe session with the given advertisement  and gives a url to pay"""
-        YOUR_DOMAIN = get_current_host(self.request)
+        YOUR_DOMAIN = env("STRIPE_PAYMENT_REDIRECT")
         user = request.user
         data = request.data
-        print(data)
+        data['user'] = user.id
 
         ad_id = data['property_ad']
         item = get_object_or_404(Advertisement, id=ad_id)
@@ -83,11 +85,44 @@ class BookPropertyWithCard(APIView):
             line_items=checkout_order_items,
             customer_email=user.email,
             mode='payment',
-            success_url=f"{YOUR_DOMAIN}",
-            cancel_url=f"{YOUR_DOMAIN}/cancel",
+            success_url=f"{YOUR_DOMAIN}/advertisements/{ad_id}/?payment=success",
+            cancel_url=f"{YOUR_DOMAIN}/advertisements/{ad_id}/?payment=canceled",
+            metadata=data
         )
 
         return Response({'session_url': session.url})
+
+
+@api_view(["POST"])
+def stripe_webhook(request):
+    """This is stripe webhook which will be called when a successful payment happens and create a book property object in database"""
+    STRIPE_WEBHOOK_KEY = env("STRIPE_WEB_HOOK_SECRET")
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_KEY)
+    except ValueError as e:
+        return Response({'errors': "Invalid Payload"}, status=status.HTTP_400_BAD_REQUEST)
+    except stripe.error.SignatureVerificationError as e:
+        return Response({'errors': "Invalid Signature"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        data = session['metadata']
+
+        ad = get_object_or_404(Advertisement, pk=data['property_ad'])
+        user = get_object_or_404(User, pk=data['user'])
+
+        booking_data = BookProperty.objects.create(
+            property_ad=ad, booked_by=user, message=data['message'], payment_method="card", is_paid=True)
+        booking_data.save()
+
+        return Response({'details': "Payment successful"}, status=status.HTTP_200_OK)
+
+    return Response({'details': "Unhandled event"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PropertyOwnerView(APIView):
