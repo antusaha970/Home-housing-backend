@@ -100,13 +100,17 @@ def stripe_webhook(request):
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
+    print(f"Payload: {payload}")
+    print(f"Signature Header: {sig_header}")
 
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, STRIPE_WEBHOOK_KEY)
     except ValueError as e:
+        print('Value error ', e)
         return Response({'errors': "Invalid Payload"}, status=status.HTTP_400_BAD_REQUEST)
     except stripe.error.SignatureVerificationError as e:
+        print("Invalid signature ", e)
         return Response({'errors': "Invalid Signature"}, status=status.HTTP_400_BAD_REQUEST)
 
     if event['type'] == 'checkout.session.completed':
@@ -121,7 +125,7 @@ def stripe_webhook(request):
         booking_data.save()
 
         return Response({'details': "Payment successful"}, status=status.HTTP_200_OK)
-
+    print("unhandled event")
     return Response({'details': "Unhandled event"}, status=status.HTTP_400_BAD_REQUEST)
 
 
