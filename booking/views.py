@@ -96,7 +96,7 @@ class BookPropertyWithCard(APIView):
 @api_view(["POST"])
 def stripe_webhook(request):
     """This is stripe webhook which will be called when a successful payment happens and create a book property object in database"""
-    STRIPE_WEBHOOK_KEY = env("STRIPE_WEB_HOOK_SECRET")
+    STRIPE_WEBHOOK_KEY = "whsec_m8MxvciOrrO2wXPe7Tst4ju3g7EunLOo"
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
