@@ -10,7 +10,7 @@ class AdvertiseImageSerializer(serializers.ModelSerializer):
 
 
 class AdvertisementImageToDisplay(serializers.Serializer):
-    image = serializers.ImageField()
+    image = serializers.CharField()
 
 
 class OwnerSerializer(serializers.ModelSerializer):

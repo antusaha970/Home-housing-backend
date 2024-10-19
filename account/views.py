@@ -29,7 +29,7 @@ class RegisterAccountView(APIView):
             token = default_token_generator.make_token(account)
             uid = urlsafe_base64_encode(force_bytes(account.id))
 
-            activation_link = f"Your account activation link:   https://home-housing-backend.onrender.com/api/accounts/activate/{uid}/{token}/"
+            activation_link = f"Your account activation link:   https://home-housing-backend.vercel.app/api/accounts/activate/{uid}/{token}/"
 
             send_mail("Account activation link", activation_link,
                       "noreplay@gmail.com", [account.email])
