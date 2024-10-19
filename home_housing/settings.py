@@ -18,6 +18,7 @@ CSRF_TRUSTED_ORIGINS = ['https://home-housing-backend.onrender.com']
 # Application definition
 
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,18 +68,27 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'home_housing.wsgi.application'
+WSGI_APPLICATION = 'home_housing.wsgi.app'
 
 
 # Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.adocgzyexjypjgvypsun',
+        'PASSWORD': 'Bfc@b6QGtG7m#4M',
+        'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
+        'PORT': '6543',
     }
 }
-
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -109,6 +120,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 CORS_ORIGIN_ALLOW_ALL = True
 
 # Default primary key field type
