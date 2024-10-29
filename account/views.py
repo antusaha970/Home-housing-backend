@@ -48,7 +48,7 @@ class RegisterAccountView(APIView):
         if user is not None and default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            return redirect("https://home-housing.netlify.app/login?redirected=true")
+            return render(request, "accountActive.html")
         else:
             return Response("Something went wrong! Please try again.", status=status.HTTP_400_BAD_REQUEST)
 
