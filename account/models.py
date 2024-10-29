@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 
 
 class Profile(models.Model):
-    profile_picture = models.ImageField(
-        upload_to="account/profile_picture", default="account/profile_picture/profile.jpg")
+    profile_picture = models.TextField(
+        default="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg")
     phone_number = models.IntegerField(default=None, null=True)
     gender = models.CharField(
         choices=GENDER, max_length=10, default=None, null=True)

@@ -40,14 +40,13 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
     def upload_image(self, request, pk=None):
         advertisement = get_object_or_404(Advertisement, pk=pk)
 
-        images = request.FILES.getlist('images')
-        serialized_data = []
+        formatted_data = []
+        image_data = request.data.get("images")
+        for img in image_data:
+            formatted_data.append(
+                {'image': img, 'advertisement': advertisement.id})
 
-        for img in images:
-            data = {'advertisement': advertisement.id, 'image': img}
-            serialized_data.append(data)
-
-        serializer = AdvertiseImageSerializer(data=serialized_data, many=True)
+        serializer = AdvertiseImageSerializer(data=formatted_data, many=True)
 
         if serializer.is_valid():
             serializer.save()
