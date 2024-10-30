@@ -60,7 +60,7 @@ class BookPropertyWithCard(APIView):
 
     def post(self, request):
         """This method creates a stripe session with the given advertisement  and gives a url to pay"""
-        YOUR_DOMAIN = env("STRIPE_PAYMENT_REDIRECT")
+        YOUR_DOMAIN = get_current_host(request)
         user = request.user
         data = request.data
         data['user'] = user.id
@@ -85,8 +85,8 @@ class BookPropertyWithCard(APIView):
             line_items=checkout_order_items,
             customer_email=user.email,
             mode='payment',
-            success_url=f"{YOUR_DOMAIN}/advertisements/{ad_id}/?payment=success",
-            cancel_url=f"{YOUR_DOMAIN}/advertisements/{ad_id}/?payment=canceled",
+            success_url=f"{YOUR_DOMAIN}/api/bookings/successful-payment/",
+            cancel_url=f"{YOUR_DOMAIN}/api/bookings/cancel-payment/",
             metadata=data
         )
 
@@ -154,3 +154,13 @@ class PropertyOwnerView(APIView):
                   "noreply@gmail.com", [booking.booked_by.email])
 
         return Response({'details': "Approved"})
+
+
+@api_view(["GET"])
+def successFulPayment(request):
+    return render(request, "successfulPayment.html")
+
+
+@api_view(["GET"])
+def cancelPayment(request):
+    return render(request, "cancelPayment.html")
