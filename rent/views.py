@@ -87,7 +87,10 @@ class AdvertisementViewSet(viewsets.ModelViewSet):
                 advertisement.save(update_fields=['rating'])
 
                 return Response(serializer.data)
-
+            is_user_booked_this_property_not_accepted = BookProperty.objects.filter(
+                property_ad=advertisement, booked_by=user, is_accepted=False).exists()
+            if is_user_booked_this_property_not_accepted:
+                return Response({'errors': "Booked but not accepted by the user"}, status=status.HTTP_302_FOUND)
             else:
                 return Response({'errors': "This user didn't booked this property"}, status=status.HTTP_403_FORBIDDEN)
 
